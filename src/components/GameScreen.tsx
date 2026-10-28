@@ -273,17 +273,36 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     let roundIncorrect = 0;
     let roundEmpty = 0;
 
+    const seenThisRound = new Set<string>();
+
     for (const { catId, res } of resultsArray) {
-      roundResults[catId] = res;
-      if (res.status === 'valid') {
-        roundPoints += res.pointsEarned;
+      let finalRes = res;
+      if (finalRes.status === 'valid' && finalRes.normalizedWord) {
+        if (seenThisRound.has(finalRes.normalizedWord)) {
+          const wordDisplay = finalRes.word || finalRes.normalizedWord;
+          finalRes = {
+            ...finalRes,
+            status: 'duplicate',
+            pointsEarned: 0,
+            isNewWord: false,
+            message: `You have already used "${wordDisplay}" in this game.`
+          };
+        } else {
+          seenThisRound.add(finalRes.normalizedWord);
+        }
+      }
+
+      roundResults[catId] = finalRes;
+
+      if (finalRes.status === 'valid') {
+        roundPoints += finalRes.pointsEarned;
         validCount++;
         roundCorrect++;
-        if (res.normalizedWord) {
-          updatedUsedWords.add(res.normalizedWord);
+        if (finalRes.normalizedWord) {
+          updatedUsedWords.add(finalRes.normalizedWord);
         }
-        validEntriesForStorage.push(res);
-      } else if (res.status === 'empty') {
+        validEntriesForStorage.push(finalRes);
+      } else if (finalRes.status === 'empty') {
         roundEmpty++;
       } else {
         roundIncorrect++;
