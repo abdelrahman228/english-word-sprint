@@ -85,7 +85,7 @@ export function saveLearnedWords(validResults: AnswerValidationResult[]): { newW
           normalized: res.normalizedWord,
           arabicMeaning: res.arabicMeaning || '—',
           category: res.category,
-          exampleSentence: res.exampleSentence || `A prime example of ${res.word}.`,
+          exampleSentence: res.exampleSentence || '',
           definition: res.definition,
           dateLearned: now,
           encounterCount: 1,

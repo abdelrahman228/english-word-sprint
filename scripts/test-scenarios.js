@@ -1,7 +1,5 @@
 // Automated verification script for English Word Sprint acceptance criteria
 import { validateAnswer } from '../src/services/validationService.ts';
-import { COUNTRIES_AND_CITIES } from '../src/data/vocabularyDataset.ts';
-import { EXTENDED_FOODS, EXTENDED_NOUNS, EXTENDED_VERBS, EXTENDED_ADJECTIVES } from '../src/data/extendedLexicon.ts';
 
 async function runTests() {
   console.log('--- RUNNING ENGLISH WORD SPRINT VERIFICATION TESTS ---');
@@ -58,7 +56,10 @@ async function runTests() {
 
   // Test 9: Unverified nonsense word
   const res10 = await validateAnswer('Axyzqwert', 'noun', 'A', used);
-  assert(res10.status === 'invalid' && res10.pointsEarned === 0, 'Nonsense word "Axyzqwert" rejected without false pass');
+  assert(
+    (res10.status === 'invalid' || res10.status === 'review') && res10.pointsEarned === 0,
+    'Nonsense word "Axyzqwert" rejected without false pass'
+  );
 
   console.log(`\nResults: ${passed} passed, ${failed} failed.`);
   if (failed > 0) process.exit(1);

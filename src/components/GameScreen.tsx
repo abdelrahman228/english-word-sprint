@@ -23,9 +23,9 @@ import type {
   RoundResults
 } from '../types';
 import { CATEGORIES_CONFIG } from '../data/vocabularyDataset';
-import type { WordEntry } from '../data/vocabularyDataset';
 import { CategoryInput } from './CategoryInput';
-import { getCategoryHint, validateAnswer } from '../services/validationService';
+import { getCategoryPartialHint, validateAnswer } from '../services/validationService';
+import type { PartialHint } from '../services/validationService';
 import { soundService } from '../services/soundService';
 import { saveLearnedWords, savePersonalBest } from '../services/storageService';
 import confetti from 'canvas-confetti';
@@ -56,13 +56,21 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   onFinishGame,
   onExitGame
 }) => {
-  // Timer State
+  // Random letter picker ensuring no consecutive duplicate
+  const pickRandomLetter = useCallback((avoidLetter?: string): string => {
+    const candidates = LETTERS.filter(l => l !== avoidLetter);
+    return candidates[Math.floor(Math.random() * candidates.length)];
+  }, []);
+
+  // Timer State (Bug 7: end timestamp based to prevent drift)
   const [timeLeft, setTimeLeft] = useState<number>(settings.duration);
   const [isGameOver, setIsGameOver] = useState<boolean>(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const endTimeRef = useRef<number>(0);
+  const isEndedRef = useRef<boolean>(false); // Bug 6: idempotency guard
 
-  // Round State
-  const [currentLetter, setCurrentLetter] = useState<string>('A');
+  // Round State (Bug 9: initialize first letter lazily without setState-in-effect)
+  const [currentLetter, setCurrentLetter] = useState<string>(() => pickRandomLetter());
   const [answers, setAnswers] = useState<RoundAnswers>({
     noun: '',
     verb: '',
@@ -73,8 +81,11 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   const [lastResults, setLastResults] = useState<RoundResults | null>(null);
   const [isValidating, setIsValidating] = useState<boolean>(false);
 
-  // Active Hint Modal / Notification
-  const [currentHint, setCurrentHint] = useState<WordEntry | null>(null);
+  // Bug 8: Hints limits and partial hint state
+  // Beginner = 5 hints, Intermediate = 3 hints, Advanced = 0 hints
+  const initialHints = settings.difficulty === 'intermediate' ? 3 : settings.difficulty === 'beginner' ? 5 : 0;
+  const [hintsRemaining, setHintsRemaining] = useState<number>(initialHints);
+  const [currentHint, setCurrentHint] = useState<PartialHint | null>(null);
 
   // Game Statistics Accumulated Across Rounds
   const [totalScore, setTotalScore] = useState<number>(0);
@@ -89,26 +100,17 @@ export const GameScreen: React.FC<GameScreenProps> = ({
   // Inputs reference array for auto-focus navigation
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Random letter picker ensuring no consecutive duplicate
-  const pickRandomLetter = useCallback((avoidLetter?: string): string => {
-    // Weigh common letters slightly higher for beginner
-    const candidates = LETTERS.filter(l => l !== avoidLetter);
-    return candidates[Math.floor(Math.random() * candidates.length)];
-  }, []);
-
-  // Initialize first letter
-  useEffect(() => {
-    const firstLetter = pickRandomLetter();
-    setCurrentLetter(firstLetter);
-  }, [pickRandomLetter]);
-
-  // End Game handler
+  // End Game handler (Bug 6: Idempotent guard)
   const handleEndGame = useCallback(() => {
+    if (isEndedRef.current) return;
+    isEndedRef.current = true;
+
     if (timerRef.current) {
       clearInterval(timerRef.current);
       timerRef.current = null;
     }
     setIsGameOver(true);
+    setTimeLeft(0);
     soundService.playGameOver();
 
     // Calculate final metrics
@@ -117,9 +119,9 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       ? Math.round((totalCorrectAnswers / totalAnswersAttempted) * 100)
       : 0;
 
-    const timeElapsed = settings.duration - timeLeft;
+    const timeElapsed = settings.duration - Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
     const avgResponseTime = completedRounds > 0
-      ? Math.round((timeElapsed / completedRounds) * 10) / 10
+      ? Math.round((Math.max(0, timeElapsed) / completedRounds) * 10) / 10
       : 0;
 
     // Check personal best
@@ -157,41 +159,39 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     personalBest,
     settings.difficulty,
     settings.duration,
-    timeLeft,
     totalCorrectAnswers,
     totalEmptyAnswers,
     totalIncorrectAnswers,
     totalScore
   ]);
 
-  // Main Countdown Timer Effect
+  // Main Countdown Timer Effect (Bug 7: Date.now() timestamp math)
   useEffect(() => {
     if (isGameOver) return;
 
+    endTimeRef.current = Date.now() + settings.duration * 1000;
+
     timerRef.current = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev <= 1) {
-          if (timerRef.current) clearInterval(timerRef.current);
-          return 0;
+      const remaining = Math.max(0, Math.ceil((endTimeRef.current - Date.now()) / 1000));
+      setTimeLeft(remaining);
+
+      if (remaining <= 10 && remaining > 0) {
+        soundService.playTick(true);
+      }
+
+      if (remaining <= 0) {
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
         }
-        if (prev <= 10) {
-          soundService.playTick(true);
-        }
-        return prev - 1;
-      });
-    }, 1000);
+        handleEndGame();
+      }
+    }, 250);
 
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isGameOver]);
-
-  // Trigger end when timer hits 0
-  useEffect(() => {
-    if (timeLeft === 0 && !isGameOver) {
-      handleEndGame();
-    }
-  }, [timeLeft, isGameOver, handleEndGame]);
+  }, [isGameOver, settings.duration, handleEndGame]);
 
   // Focus the first input field on new letter
   const focusFirstInput = () => {
@@ -210,7 +210,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         nextInput.focus();
       }
     } else {
-      // Last category: submit the round!
       handleSubmitRound();
     }
   };
@@ -235,34 +234,47 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
   // Skip Letter
   const handleSkipLetter = () => {
-    if (isGameOver || timeLeft <= 0) return;
+    if (isGameOver || isEndedRef.current || Date.now() >= endTimeRef.current) return;
     const nextLetter = pickRandomLetter(currentLetter);
     setCurrentLetter(nextLetter);
     handleClearAnswers();
     setCurrentHint(null);
   };
 
-  // Submit Round Answers
+  // Submit Round Answers (Bug 5: parallel validation + timeout check)
   const handleSubmitRound = async () => {
-    if (isValidating || isGameOver || timeLeft <= 0) return;
+    if (isValidating || isGameOver || isEndedRef.current || Date.now() >= endTimeRef.current) return;
 
     setIsValidating(true);
-    const roundResults: Partial<RoundResults> = {};
-    const validEntriesForStorage: AnswerValidationResult[] = [];
     const updatedUsedWords = new Set(usedWordsInGame);
 
+    // Validate all 5 categories in PARALLEL
+    const validationPromises = CATEGORIES_CONFIG.map(async (cat) => {
+      const val = answers[cat.id];
+      const res = await validateAnswer(val, cat.id, currentLetter, updatedUsedWords);
+      return { catId: cat.id, res };
+    });
+
+    const resultsArray = await Promise.all(validationPromises);
+
+    // Check if time expired during async validation (Bug 5 Fix: discard round if time ended)
+    const isStillActive = !isEndedRef.current && Date.now() < endTimeRef.current;
+    if (!isStillActive) {
+      setIsValidating(false);
+      handleEndGame();
+      return;
+    }
+
+    const roundResults: Partial<RoundResults> = {};
+    const validEntriesForStorage: AnswerValidationResult[] = [];
     let roundPoints = 0;
     let validCount = 0;
     let roundCorrect = 0;
     let roundIncorrect = 0;
     let roundEmpty = 0;
 
-    // Validate each category asynchronously
-    for (const cat of CATEGORIES_CONFIG) {
-      const val = answers[cat.id];
-      const res = await validateAnswer(val, cat.id, currentLetter, updatedUsedWords);
-      roundResults[cat.id] = res;
-
+    for (const { catId, res } of resultsArray) {
+      roundResults[catId] = res;
       if (res.status === 'valid') {
         roundPoints += res.pointsEarned;
         validCount++;
@@ -319,8 +331,8 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
     setIsValidating(false);
 
-    // If time remains, move to next letter!
-    if (timeLeft > 0) {
+    // If time remains, move to next letter
+    if (Date.now() < endTimeRef.current) {
       const nextLetter = pickRandomLetter(currentLetter);
       setCurrentLetter(nextLetter);
       setAnswers({
@@ -335,11 +347,18 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Reveal Hint for Category
+  // Reveal Hint for Category (Bug 8 Fix: partial clues, count limit, no negative)
   const handleRevealHint = (category: CategoryInfo) => {
-    const hint = getCategoryHint(category.id, currentLetter);
+    if (settings.difficulty === 'advanced') return;
+    if (hintsRemaining <= 0) {
+      alert('No hints remaining in this sprint!');
+      return;
+    }
+
+    const hint = getCategoryPartialHint(category.id, currentLetter);
     if (hint) {
       setCurrentHint(hint);
+      setHintsRemaining(prev => Math.max(0, prev - 1));
     } else {
       alert(`No pre-set hint found for "${category.name}" starting with ${currentLetter}. Think of any valid ${category.name}!`);
     }
@@ -446,7 +465,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
             disabled={isValidating || isGameOver || timeLeft <= 0}
             requiredLetter={currentLetter}
             onRevealHint={handleRevealHint}
-            showHintButton={settings.difficulty !== 'advanced'}
+            showHintButton={settings.difficulty !== 'advanced' && hintsRemaining > 0}
             inputRef={(el) => { inputRefs.current[index] = el; }}
           />
         ))}
@@ -519,7 +538,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         </div>
       </div>
 
-      {/* Average points & New words badge */}
+      {/* Average points, New words, & Hints remaining */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -534,6 +553,14 @@ export const GameScreen: React.FC<GameScreenProps> = ({
           <span>Avg points / round: </span>
           <strong style={{ color: 'var(--text-main)' }}>{avgPointsPerRound}</strong>
         </div>
+        {settings.difficulty !== 'advanced' && (
+          <div>
+            <span>Hints left: </span>
+            <strong style={{ color: hintsRemaining > 0 ? 'var(--primary)' : 'var(--error)' }}>
+              {hintsRemaining}
+            </strong>
+          </div>
+        )}
         <div>
           <span>New words collected this game: </span>
           <strong style={{ color: 'var(--primary)' }}>{newVocabCollected}</strong>
@@ -546,7 +573,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
         <span>{randomTip}</span>
       </div>
 
-      {/* Hint Dialog Modal */}
+      {/* Partial Hint Dialog Modal (Bug 8 Fix: partial letters, no direct auto-fill) */}
       {currentHint && (
         <div className="modal-overlay" onClick={() => setCurrentHint(null)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -565,10 +592,10 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               </div>
               <div>
                 <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.2rem', fontWeight: 800 }}>
-                  Hint for {currentHint.category.toUpperCase()} ({currentLetter})
+                  Clue for {currentHint.category.toUpperCase()} ({currentLetter})
                 </h3>
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                  A great English word you can use:
+                  Use the pattern and meaning to think of the word:
                 </p>
               </div>
             </div>
@@ -581,38 +608,37 @@ export const GameScreen: React.FC<GameScreenProps> = ({
               marginBottom: '1.25rem'
             }}>
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.6rem', fontWeight: 900, color: 'var(--primary)' }}>
-                  {currentHint.word}
+                <span style={{ fontSize: '1.8rem', fontWeight: 900, color: 'var(--primary)', letterSpacing: '2px' }}>
+                  {currentHint.pattern}
                 </span>
-                <span className="arabic-text" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
-                  {currentHint.arabicMeaning}
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                  ({currentHint.wordLength} letters)
                 </span>
               </div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-main)', marginBottom: '0.4rem' }}>
-                {currentHint.definition}
-              </div>
-              <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
-                "{currentHint.exampleSentence}"
-              </div>
+
+              {currentHint.arabicMeaning && (
+                <div style={{ marginBottom: '0.4rem' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Meaning: </span>
+                  <span className="arabic-text" style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>
+                    {currentHint.arabicMeaning}
+                  </span>
+                </div>
+              )}
+
+              {currentHint.definition && (
+                <div style={{ fontSize: '0.88rem', color: 'var(--text-main)' }}>
+                  {currentHint.definition}
+                </div>
+              )}
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
               <button
                 type="button"
-                className="btn btn-secondary"
+                className="btn btn-primary"
                 onClick={() => setCurrentHint(null)}
               >
-                Close
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={() => {
-                  handleAnswerChange(currentHint.category, currentHint.word);
-                  setCurrentHint(null);
-                }}
-              >
-                Use This Word
+                I Know It!
               </button>
             </div>
           </div>

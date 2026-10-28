@@ -4,7 +4,7 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 
 export type GameDuration = 30 | 60 | 90 | 120;
 
-export type ValidationStatus = 'idle' | 'valid' | 'invalid' | 'duplicate' | 'empty';
+export type ValidationStatus = 'idle' | 'valid' | 'invalid' | 'duplicate' | 'empty' | 'review';
 
 export interface CategoryInfo {
   id: Category;

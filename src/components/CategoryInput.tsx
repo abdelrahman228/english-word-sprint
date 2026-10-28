@@ -56,7 +56,7 @@ export const CategoryInput: React.FC<CategoryInputProps> = ({
     if (!result) return '';
     if (result.status === 'valid') return 'is-valid';
     if (result.status === 'invalid') return 'is-invalid';
-    if (result.status === 'duplicate') return 'is-duplicate';
+    if (result.status === 'duplicate' || result.status === 'review') return 'is-duplicate';
     return '';
   };
 
@@ -93,10 +93,10 @@ export const CategoryInput: React.FC<CategoryInputProps> = ({
 
         {/* Validation Feedback Message */}
         {result && result.status !== 'empty' && (
-          <div className={`category-feedback ${result.status}`}>
+          <div className={`category-feedback ${result.status === 'review' ? 'duplicate' : result.status}`}>
             {result.status === 'valid' && <Check size={14} />}
             {result.status === 'invalid' && <X size={14} />}
-            {result.status === 'duplicate' && <AlertTriangle size={14} />}
+            {(result.status === 'duplicate' || result.status === 'review') && <AlertTriangle size={14} />}
             <span>{result.message}</span>
             {result.arabicMeaning && (
               <span className="arabic-text" style={{ marginRight: '0.4rem', fontWeight: 600 }}>
@@ -110,10 +110,10 @@ export const CategoryInput: React.FC<CategoryInputProps> = ({
       {/* Action Badges / Hint / Audio */}
       <div className="category-actions">
         {result && (
-          <div className={`status-badge ${result.status}`} title={result.message}>
+          <div className={`status-badge ${result.status === 'review' ? 'duplicate' : result.status}`} title={result.message}>
             {result.status === 'valid' && <Check size={16} />}
             {result.status === 'invalid' && <X size={16} />}
-            {result.status === 'duplicate' && <AlertTriangle size={16} />}
+            {(result.status === 'duplicate' || result.status === 'review') && <AlertTriangle size={16} />}
             {result.status === 'empty' && <span style={{ fontSize: '0.75rem' }}>—</span>}
           </div>
         )}

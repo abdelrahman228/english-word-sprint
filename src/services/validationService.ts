@@ -12,8 +12,19 @@ import {
   EXTENDED_VERBS
 } from '../data/extendedLexicon';
 
+interface MeaningDetail {
+  definition?: string;
+  example?: string;
+}
+
+interface DictCacheEntry {
+  valid: boolean;
+  pos: string[];
+  meaningsByPos: Record<string, MeaningDetail>;
+}
+
 // Cache for online dictionary queries
-const API_CACHE = new Map<string, { valid: boolean; pos: string[]; definition?: string; example?: string }>();
+const API_CACHE = new Map<string, DictCacheEntry>();
 
 // Category readable names
 const CATEGORY_NAMES: Record<Category, string> = {
@@ -36,30 +47,48 @@ export function normalizeInput(raw: string): string {
     .replace(/\s+/g, ' ');
 }
 
-// Extract base form simple heuristic for common verb inflections (e.g. running -> run, played -> play)
-function getBaseCandidates(word: string): string[] {
+// Extract base form candidates for nouns (plural inflections only: -s, -es, -ies)
+export function getNounCandidates(word: string): string[] {
+  const candidates = [word];
+  if (word.endsWith('ies') && word.length > 4) {
+    candidates.push(word.slice(0, -3) + 'y'); // e.g. babies -> baby
+  } else if (word.endsWith('es') && word.length > 3) {
+    candidates.push(word.slice(0, -2)); // e.g. boxes -> box
+    candidates.push(word.slice(0, -1)); // e.g. houses -> house
+  } else if (word.endsWith('s') && word.length > 2 && !word.endsWith('ss')) {
+    candidates.push(word.slice(0, -1)); // e.g. apples -> apple
+  }
+  return candidates;
+}
+
+// Extract base form candidates for verbs (-ing, -ed, 3rd person -s/-es/-ies)
+export function getVerbCandidates(word: string): string[] {
   const candidates = [word];
   if (word.endsWith('ing') && word.length > 4) {
-    candidates.push(word.slice(0, -3));
+    candidates.push(word.slice(0, -3)); // e.g. walking -> walk
+    candidates.push(word.slice(0, -3) + 'e'); // e.g. dancing -> dance
     if (word.length > 5 && word[word.length - 4] === word[word.length - 5]) {
       candidates.push(word.slice(0, -4)); // e.g. running -> run
     }
   }
-  if (word.endsWith('ed') && word.length > 3) {
-    candidates.push(word.slice(0, -2));
+  if (word.endsWith('ied') && word.length > 4) {
+    candidates.push(word.slice(0, -3) + 'y'); // e.g. hurried -> hurry
+  } else if (word.endsWith('ed') && word.length > 3) {
+    candidates.push(word.slice(0, -2)); // e.g. walked -> walk
     candidates.push(word.slice(0, -1)); // e.g. danced -> dance
   }
-  if (word.endsWith('s') && word.length > 3) {
-    candidates.push(word.slice(0, -1));
-    if (word.endsWith('es') && word.length > 4) {
-      candidates.push(word.slice(0, -2));
-    }
+  if (word.endsWith('ies') && word.length > 4) {
+    candidates.push(word.slice(0, -3) + 'y'); // e.g. cries -> cry
+  } else if (word.endsWith('es') && word.length > 4) {
+    candidates.push(word.slice(0, -2)); // e.g. watches -> watch
+  } else if (word.endsWith('s') && word.length > 2 && !word.endsWith('ss')) {
+    candidates.push(word.slice(0, -1)); // e.g. runs -> run
   }
   return candidates;
 }
 
 // Fetch dictionary data via Free Dictionary API with timeout
-async function fetchDictionaryData(word: string): Promise<{ valid: boolean; pos: string[]; definition?: string; example?: string } | null> {
+async function fetchDictionaryData(word: string): Promise<DictCacheEntry | null> {
   const cached = API_CACHE.get(word);
   if (cached) return cached;
 
@@ -74,7 +103,7 @@ async function fetchDictionaryData(word: string): Promise<{ valid: boolean; pos:
 
     if (!res.ok) {
       if (res.status === 404) {
-        const notFound = { valid: false, pos: [] };
+        const notFound: DictCacheEntry = { valid: false, pos: [], meaningsByPos: {} };
         API_CACHE.set(word, notFound);
         return notFound;
       }
@@ -83,34 +112,37 @@ async function fetchDictionaryData(word: string): Promise<{ valid: boolean; pos:
 
     const data = await res.json();
     if (!Array.isArray(data) || data.length === 0) {
-      const notFound = { valid: false, pos: [] };
+      const notFound: DictCacheEntry = { valid: false, pos: [], meaningsByPos: {} };
       API_CACHE.set(word, notFound);
       return notFound;
     }
 
     const posSet = new Set<string>();
-    let definition = '';
-    let example = '';
+    const meaningsByPos: Record<string, MeaningDetail> = {};
 
     for (const entry of data) {
       if (Array.isArray(entry.meanings)) {
         for (const m of entry.meanings) {
-          if (m.partOfSpeech) {
-            posSet.add(m.partOfSpeech.toLowerCase());
-          }
-          if (!definition && Array.isArray(m.definitions) && m.definitions.length > 0) {
-            definition = m.definitions[0].definition || '';
-            example = m.definitions[0].example || '';
+          const posKey = m.partOfSpeech ? m.partOfSpeech.toLowerCase() : '';
+          if (posKey) {
+            posSet.add(posKey);
+            if (!meaningsByPos[posKey] && Array.isArray(m.definitions) && m.definitions.length > 0) {
+              const defWithEx = m.definitions.find((d: { example?: string }) => d.example);
+              const chosen = defWithEx || m.definitions[0];
+              meaningsByPos[posKey] = {
+                definition: chosen?.definition || '',
+                example: chosen?.example || ''
+              };
+            }
           }
         }
       }
     }
 
-    const result = {
+    const result: DictCacheEntry = {
       valid: true,
       pos: Array.from(posSet),
-      definition,
-      example
+      meaningsByPos
     };
 
     API_CACHE.set(word, result);
@@ -201,8 +233,7 @@ export async function validateAnswer(
         category,
         isNewWord: true,
         arabicMeaning: geoEntry.arabic,
-        definition: `A recognized world ${geoEntry.type}.`,
-        exampleSentence: `${capitalized} is known for its unique culture and landmarks.`
+        definition: `A recognized world ${geoEntry.type}.`
       };
     }
 
@@ -220,8 +251,7 @@ export async function validateAnswer(
           category,
           isNewWord: true,
           arabicMeaning: subGeo.arabic,
-          definition: `A recognized world ${subGeo.type}.`,
-          exampleSentence: `${capitalized} is a celebrated geographic location.`
+          definition: `A recognized world ${subGeo.type}.`
         };
       }
     }
@@ -246,15 +276,14 @@ export async function validateAnswer(
         word: capitalized,
         normalizedWord: normalized,
         category,
-        isNewWord: true,
-        exampleSentence: `People enjoy eating ${normalized}.`
+        isNewWord: true
       };
     }
   }
 
   // 5c. Noun
   if (category === 'noun') {
-    const candidates = getBaseCandidates(normalized);
+    const candidates = getNounCandidates(normalized);
     for (const cand of candidates) {
       if (EXTENDED_NOUNS.has(cand)) {
         return {
@@ -265,8 +294,7 @@ export async function validateAnswer(
           normalizedWord: normalized,
           category,
           isNewWord: true,
-          definition: 'A person, place, thing, or idea.',
-          exampleSentence: `The ${normalized} was clearly visible.`
+          definition: 'A person, place, thing, or idea.'
         };
       }
     }
@@ -274,7 +302,7 @@ export async function validateAnswer(
 
   // 5d. Verb
   if (category === 'verb') {
-    const candidates = getBaseCandidates(normalized);
+    const candidates = getVerbCandidates(normalized);
     for (const cand of candidates) {
       if (EXTENDED_VERBS.has(cand)) {
         return {
@@ -285,8 +313,7 @@ export async function validateAnswer(
           normalizedWord: normalized,
           category,
           isNewWord: true,
-          definition: 'An action or state word.',
-          exampleSentence: `They decided to ${cand} together.`
+          definition: 'An action or state word.'
         };
       }
     }
@@ -303,8 +330,7 @@ export async function validateAnswer(
         normalizedWord: normalized,
         category,
         isNewWord: true,
-        definition: 'A word describing a noun.',
-        exampleSentence: `It was a truly ${normalized} experience.`
+        definition: 'A word describing a noun.'
       };
     }
   }
@@ -324,9 +350,10 @@ export async function validateAnswer(
       };
     }
 
-    const { pos, definition, example } = dictData;
+    const { pos, meaningsByPos } = dictData;
 
     if (category === 'noun' && pos.includes('noun')) {
+      const detail = meaningsByPos['noun'] || {};
       return {
         status: 'valid',
         message: `"${capitalized}" is verified as a noun! (+10 pts)`,
@@ -335,12 +362,14 @@ export async function validateAnswer(
         normalizedWord: normalized,
         category,
         isNewWord: true,
-        definition: definition || 'A recognized English noun.',
-        exampleSentence: example || `A notable example of ${normalized}.`
+        definition: detail.definition || 'A recognized English noun.',
+        exampleSentence: detail.example || undefined
       };
     }
 
-    if (category === 'verb' && (pos.includes('verb') || pos.includes('transitive verb') || pos.includes('intransitive verb'))) {
+    const isVerb = pos.includes('verb') || pos.includes('transitive verb') || pos.includes('intransitive verb');
+    if (category === 'verb' && isVerb) {
+      const detail = meaningsByPos['verb'] || meaningsByPos['transitive verb'] || meaningsByPos['intransitive verb'] || {};
       return {
         status: 'valid',
         message: `"${capitalized}" is verified as a verb! (+10 pts)`,
@@ -349,12 +378,13 @@ export async function validateAnswer(
         normalizedWord: normalized,
         category,
         isNewWord: true,
-        definition: definition || 'A recognized English action word.',
-        exampleSentence: example || `To ${normalized} with purpose.`
+        definition: detail.definition || 'A recognized English action word.',
+        exampleSentence: detail.example || undefined
       };
     }
 
     if (category === 'adjective' && pos.includes('adjective')) {
+      const detail = meaningsByPos['adjective'] || {};
       return {
         status: 'valid',
         message: `"${capitalized}" is verified as an adjective! (+10 pts)`,
@@ -363,13 +393,14 @@ export async function validateAnswer(
         normalizedWord: normalized,
         category,
         isNewWord: true,
-        definition: definition || 'A recognized English descriptive word.',
-        exampleSentence: example || `Described as ${normalized}.`
+        definition: detail.definition || 'A recognized English descriptive word.',
+        exampleSentence: detail.example || undefined
       };
     }
 
     if (category === 'food') {
-      const defLower = (definition || '').toLowerCase();
+      const nounDetail = meaningsByPos['noun'] || {};
+      const defLower = (nounDetail.definition || '').toLowerCase();
       const isFoodDef =
         defLower.includes('food') ||
         defLower.includes('edible') ||
@@ -395,8 +426,8 @@ export async function validateAnswer(
           normalizedWord: normalized,
           category,
           isNewWord: true,
-          definition,
-          exampleSentence: example || `Fresh ${normalized} is eaten with pleasure.`
+          definition: nounDetail.definition,
+          exampleSentence: nounDetail.example || undefined
         };
       }
     }
@@ -413,10 +444,10 @@ export async function validateAnswer(
     };
   }
 
-  // 7. Network / Dictionary Service Unavailable Fallback
+  // 7. Network / Dictionary Service Unavailable Fallback (Bug 1 Fix: 'review' status)
   return {
-    status: 'invalid',
-    message: `Could not verify "${capitalized}" as a valid ${CATEGORY_NAMES[category]}. Check your spelling or try another word.`,
+    status: 'review',
+    message: `Could not verify "${capitalized}" (offline / dictionary unavailable). Needs review. (0 pts)`,
     pointsEarned: 0,
     word: rawInput.trim(),
     normalizedWord: normalized,
@@ -424,12 +455,43 @@ export async function validateAnswer(
   };
 }
 
-// Generate category hint for Beginner / Intermediate mode
+export interface PartialHint {
+  wordLength: number;
+  pattern: string; // e.g. "Ap _ _ _"
+  category: Category;
+  arabicMeaning: string;
+  definition: string;
+  firstLetters: string;
+}
+
+// Generate category partial hint for Beginner / Intermediate mode (Bug 8 Fix)
+export function getCategoryPartialHint(category: Category, letter: string): PartialHint | null {
+  const matches = CURATED_WORDS.filter(
+    w => w.category === category && w.word.toUpperCase().startsWith(letter.toUpperCase())
+  );
+  if (matches.length === 0) return null;
+  const picked = matches[Math.floor(Math.random() * matches.length)];
+  const w = picked.word;
+  const prefixLen = Math.min(2, w.length);
+  const firstLetters = w.slice(0, prefixLen);
+  const blanks = '_ '.repeat(Math.max(0, w.length - prefixLen)).trim();
+  const pattern = blanks.length > 0 ? `${firstLetters} ${blanks}` : firstLetters;
+
+  return {
+    wordLength: w.length,
+    pattern,
+    category,
+    arabicMeaning: picked.arabicMeaning,
+    definition: picked.definition,
+    firstLetters
+  };
+}
+
+// Backward compatibility helper if needed
 export function getCategoryHint(category: Category, letter: string): WordEntry | null {
   const matches = CURATED_WORDS.filter(
     w => w.category === category && w.word.toUpperCase().startsWith(letter.toUpperCase())
   );
   if (matches.length === 0) return null;
-  // Return random match from curated list
   return matches[Math.floor(Math.random() * matches.length)];
 }

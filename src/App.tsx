@@ -28,18 +28,18 @@ export const App: React.FC = () => {
   const [gameState, setGameState] = useState<'home' | 'playing' | 'results'>('home');
   const [lastFinishedGame, setLastFinishedGame] = useState<GameHistoryItem | null>(null);
 
-  // Persistent App State
-  const [personalBest, setPersonalBest] = useState<number>(0);
-  const [gameHistory, setGameHistory] = useState<GameHistoryItem[]>([]);
-  const [vocabulary, setVocabulary] = useState<Record<string, VocabWord>>({});
-  const [streak, setStreak] = useState<UserStreak>({ currentStreak: 0, bestStreak: 0, lastPlayedDate: '' });
-  const [settings, setSettings] = useState<GameSettings>(getSettings());
+  // Persistent App State initialized lazily from storage
+  const [personalBest, setPersonalBest] = useState<number>(() => getPersonalBest());
+  const [gameHistory, setGameHistory] = useState<GameHistoryItem[]>(() => getGameHistory());
+  const [vocabulary, setVocabulary] = useState<Record<string, VocabWord>>(() => getVocabularyLibrary());
+  const [streak, setStreak] = useState<UserStreak>(() => getUserStreak());
+  const [settings, setSettings] = useState<GameSettings>(() => getSettings());
 
   // Modals
   const [showSettingsModal, setShowSettingsModal] = useState<boolean>(false);
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false);
 
-  // Load persistent data on mount
+  // Sync storage data on demand
   const refreshStorageData = useCallback(() => {
     setPersonalBest(getPersonalBest());
     setGameHistory(getGameHistory());
@@ -48,12 +48,9 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    refreshStorageData();
-    const loadedSettings = getSettings();
-    setSettings(loadedSettings);
-    soundService.setSoundEnabled(loadedSettings.soundEnabled);
-    soundService.setSpeechEnabled(loadedSettings.speechEnabled);
-  }, [refreshStorageData]);
+    soundService.setSoundEnabled(settings.soundEnabled);
+    soundService.setSpeechEnabled(settings.speechEnabled);
+  }, [settings.soundEnabled, settings.speechEnabled]);
 
   // Update Settings
   const handleUpdateSettings = (newSettings: Partial<GameSettings>) => {

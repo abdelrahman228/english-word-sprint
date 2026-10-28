@@ -79,7 +79,7 @@
   padding: 0;
 }
 
-body {
+html, body {
   font-family: var(--font-body);
   background-color: var(--bg-main);
   color: var(--text-main);
@@ -658,5 +658,20 @@ body {
   }
   .brand-badge {
     display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-label {
+    display: none;
+  }
+  .nav-btn {
+    padding: 0.4rem 0.5rem;
+  }
+  .nav-links {
+    gap: 0.25rem;
+  }
+  .navbar-inner {
+    padding: 0 0.5rem;
   }
 }
