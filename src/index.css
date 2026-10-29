@@ -38,6 +38,43 @@
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Plus Jakarta Sans', sans-serif;
   --font-arabic: 'Cairo', sans-serif;
+
+  /* Semantic Chip & Badge Tokens */
+  --chip-indigo-bg: #e0e7ff;
+  --chip-indigo-text: #4338ca;
+  --chip-amber-bg: #fef3c7;
+  --chip-amber-text: #b45309;
+  --chip-blue-bg: #dbeafe;
+  --chip-blue-text: #2563eb;
+  --chip-red-bg: #fee2e2;
+  --chip-red-text: #b91c1c;
+  --chip-green-bg: #dcfce7;
+  --chip-green-text: #15803d;
+  --chip-purple-bg: #f3e8ff;
+  --chip-purple-text: #7c3aed;
+  --chip-violet-bg: #ede9fe;
+  --chip-violet-text: #6d28d9;
+  --chip-gold-bg: #fef08a;
+  --chip-gold-text: #854d0e;
+
+  --badge-gold: #fde047;
+  --badge-mint: #a7f3d0;
+  --badge-pink: #fbcfe8;
+
+  --hero-card-bg: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
+  --hero-card-text: #ffffff;
+  --hero-btn-bg: #ffffff;
+  --hero-btn-text: #7c3aed;
+  --hero-glass-bg: rgba(255, 255, 255, 0.15);
+  --hero-glass-border: rgba(255, 255, 255, 0.25);
+  --hero-glow: radial-gradient(circle, rgba(255, 255, 255, 0.2) 0%, transparent 70%);
+  --hero-badge-bg: rgba(255, 255, 255, 0.18);
+  --letter-display-bg: linear-gradient(135deg, #7c3aed, #4f46e5);
+  --letter-circle-bg: #ffffff;
+  --letter-circle-text: #7c3aed;
+  --streak-badge-bg: #fef3c7;
+  --streak-badge-text: #b45309;
+  --streak-badge-border: #fde68a;
 }
 
 [data-theme="dark"] {
@@ -71,6 +108,43 @@
   --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.4);
   --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.6);
   --shadow-glow: 0 0 30px rgba(139, 92, 246, 0.45);
+
+  /* Semantic Chip & Badge Tokens for Dark Mode */
+  --chip-indigo-bg: #1e1b4b;
+  --chip-indigo-text: #c7d2fe;
+  --chip-amber-bg: #451a03;
+  --chip-amber-text: #fde68a;
+  --chip-blue-bg: #1e3a8a;
+  --chip-blue-text: #bfdbfe;
+  --chip-red-bg: #450a0a;
+  --chip-red-text: #fca5a5;
+  --chip-green-bg: #064e3b;
+  --chip-green-text: #86efac;
+  --chip-purple-bg: #2e1065;
+  --chip-purple-text: #d8b4fe;
+  --chip-violet-bg: #2e1065;
+  --chip-violet-text: #c4b5fd;
+  --chip-gold-bg: #422006;
+  --chip-gold-text: #fef08a;
+
+  --badge-gold: #fde047;
+  --badge-mint: #6ee7b7;
+  --badge-pink: #f472b6;
+
+  --hero-card-bg: linear-gradient(135deg, #3730a3 0%, #581c87 50%, #6b21a8 100%);
+  --hero-card-text: #f8fafc;
+  --hero-btn-bg: #f8fafc;
+  --hero-btn-text: #5b21b6;
+  --hero-glass-bg: rgba(255, 255, 255, 0.12);
+  --hero-glass-border: rgba(255, 255, 255, 0.2);
+  --hero-glow: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+  --hero-badge-bg: rgba(255, 255, 255, 0.15);
+  --letter-display-bg: linear-gradient(135deg, #6d28d9, #3730a3);
+  --letter-circle-bg: #19162e;
+  --letter-circle-text: #a78bfa;
+  --streak-badge-bg: #451a03;
+  --streak-badge-text: #fbbf24;
+  --streak-badge-border: #92400e;
 }
 
 *, *::before, *::after {

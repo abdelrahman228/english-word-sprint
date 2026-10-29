@@ -33,8 +33,8 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
       {/* Hero Welcome Card */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%)',
-        color: 'white',
+        background: 'var(--hero-card-bg)',
+        color: 'var(--hero-card-text)',
         border: 'none',
         padding: '2.5rem 2rem',
         textAlign: 'center',
@@ -48,7 +48,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           right: '-30px',
           width: '180px',
           height: '180px',
-          background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%)',
+          background: 'var(--hero-glow)',
           borderRadius: '50%',
           pointerEvents: 'none'
         }} />
@@ -57,14 +57,14 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           display: 'inline-flex',
           alignItems: 'center',
           gap: '0.5rem',
-          background: 'rgba(255, 255, 255, 0.18)',
+          background: 'var(--hero-badge-bg)',
           backdropFilter: 'blur(8px)',
           padding: '0.4rem 1rem',
           borderRadius: '999px',
           fontSize: '0.85rem',
           fontWeight: 700,
           marginBottom: '1rem',
-          border: '1px solid rgba(255, 255, 255, 0.25)'
+          border: '1px solid var(--hero-glass-border)'
         }}>
           <Sparkles size={16} />
           <span>Interactive English Vocabulary Sprint • اضرب في الملي</span>
@@ -101,7 +101,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           marginBottom: '2rem'
         }}>
           <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+            background: 'var(--hero-glass-bg)',
             backdropFilter: 'blur(10px)',
             padding: '0.6rem 1.25rem',
             borderRadius: 'var(--border-radius-md)',
@@ -109,7 +109,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             alignItems: 'center',
             gap: '0.6rem'
           }}>
-            <Award size={20} color="#fde047" />
+            <Award size={20} color="var(--badge-gold)" />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '0.7rem', opacity: 0.85, textTransform: 'uppercase', fontWeight: 700 }}>Personal Best</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{personalBest} pts</div>
@@ -117,7 +117,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+            background: 'var(--hero-glass-bg)',
             backdropFilter: 'blur(10px)',
             padding: '0.6rem 1.25rem',
             borderRadius: 'var(--border-radius-md)',
@@ -125,7 +125,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             alignItems: 'center',
             gap: '0.6rem'
           }}>
-            <BookOpen size={20} color="#a7f3d0" />
+            <BookOpen size={20} color="var(--badge-mint)" />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '0.7rem', opacity: 0.85, textTransform: 'uppercase', fontWeight: 700 }}>Words Saved</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{totalWordsLearned}</div>
@@ -133,7 +133,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           </div>
 
           <div style={{
-            background: 'rgba(255, 255, 255, 0.15)',
+            background: 'var(--hero-glass-bg)',
             backdropFilter: 'blur(10px)',
             padding: '0.6rem 1.25rem',
             borderRadius: 'var(--border-radius-md)',
@@ -141,7 +141,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             alignItems: 'center',
             gap: '0.6rem'
           }}>
-            <Zap size={20} color="#fbcfe8" />
+            <Zap size={20} color="var(--badge-pink)" />
             <div style={{ textAlign: 'left' }}>
               <div style={{ fontSize: '0.7rem', opacity: 0.85, textTransform: 'uppercase', fontWeight: 700 }}>Games Played</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 800 }}>{totalGamesPlayed}</div>
@@ -156,12 +156,12 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             id="start-game-btn"
             className="btn"
             style={{
-              background: '#ffffff',
-              color: 'var(--primary)',
+              background: 'var(--hero-btn-bg)',
+              color: 'var(--hero-btn-text)',
               fontSize: '1.2rem',
               padding: '1rem 2.8rem',
               borderRadius: 'var(--border-radius-xl)',
-              boxShadow: '0 8px 25px rgba(0, 0, 0, 0.25)',
+              boxShadow: 'var(--shadow-lg)',
               fontWeight: 800
             }}
           >
@@ -253,7 +253,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                     height: '12px',
                     borderRadius: '50%',
                     background: 'var(--primary)',
-                    boxShadow: '0 0 0 3px rgba(124, 58, 237, 0.25)'
+                    boxShadow: '0 0 0 3px var(--primary-light)'
                   }} />
                 )}
               </button>
@@ -312,7 +312,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
                 <span style={{
                   fontSize: '0.7rem',
                   fontWeight: 800,
-                  color: 'white',
+                  color: 'var(--text-inverse)',
                   background: 'var(--primary)',
                   width: '20px',
                   height: '20px',
@@ -327,7 +327,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               </div>
               <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>{cat.name}</div>
               <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{cat.description}</div>
-              <div style={{ fontSize: '0.72rem', color: 'var(--primary-dark)', fontStyle: 'italic', marginTop: 'auto' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--primary)', fontStyle: 'italic', marginTop: 'auto' }}>
                 Ex: {cat.example.split(',')[0]}
               </div>
             </div>
