@@ -93,9 +93,9 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
       {/* Celebration & Motivational Banner */}
       <div className="card" style={{
         background: isNewRecord
-          ? 'linear-gradient(135deg, #7c3aed 0%, #db2777 100%)'
-          : 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
-        color: 'white',
+          ? 'var(--hero-record-bg)'
+          : 'var(--hero-card-bg)',
+        color: 'var(--hero-card-text)',
         textAlign: 'center',
         padding: '2.5rem 1.5rem',
         borderRadius: 'var(--border-radius-xl)',
@@ -106,7 +106,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
           display: 'inline-flex',
           alignItems: 'center',
           gap: '0.4rem',
-          background: 'rgba(255, 255, 255, 0.2)',
+          background: 'var(--hero-badge-bg)',
           padding: '0.35rem 0.9rem',
           borderRadius: '999px',
           fontSize: '0.82rem',
@@ -139,8 +139,8 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.5rem',
-            background: '#fef08a',
-            color: '#854d0e',
+            background: 'var(--chip-gold-bg)',
+            color: 'var(--chip-gold-text)',
             padding: '0.45rem 1.25rem',
             borderRadius: '999px',
             fontWeight: 800,
@@ -159,7 +159,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         gap: '0.75rem'
       }}>
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#fef3c7', color: '#b45309' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-amber-bg)', color: 'var(--chip-amber-text)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
@@ -169,7 +169,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-indigo-bg)', color: 'var(--chip-indigo-text)' }}>
             <RotateCcw size={20} />
           </div>
           <div className="stat-chip-content">
@@ -209,7 +209,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#f3e8ff', color: 'var(--primary)' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-purple-bg)', color: 'var(--chip-purple-text)' }}>
             <BookOpen size={20} />
           </div>
           <div className="stat-chip-content">
@@ -219,7 +219,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
@@ -229,7 +229,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#ede9fe', color: '#6d28d9' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-violet-bg)', color: 'var(--chip-violet-text)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
@@ -367,7 +367,7 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
                         height: '32px',
                         borderRadius: '50%',
                         background: 'var(--primary)',
-                        color: 'white',
+                        color: 'var(--text-inverse)',
                         fontWeight: 900,
                         display: 'flex',
                         alignItems: 'center',
