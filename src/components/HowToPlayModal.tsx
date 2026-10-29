@@ -35,7 +35,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ onClose }) => {
             borderLeft: '4px solid var(--primary)',
             padding: '0.85rem 1rem',
             borderRadius: 'var(--border-radius-sm)',
-            color: 'var(--primary-dark)',
+            color: 'var(--banner-tip-text)',
             fontSize: '0.9rem',
             lineHeight: 1.5
           }}>

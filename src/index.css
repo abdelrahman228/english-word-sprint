@@ -61,6 +61,8 @@
   --badge-mint: #a7f3d0;
   --badge-pink: #fbcfe8;
 
+  --banner-tip-text: var(--primary-dark);
+
   --hero-card-bg: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #9333ea 100%);
   --hero-record-bg: linear-gradient(135deg, #7c3aed 0%, #db2777 100%);
   --hero-card-text: #ffffff;
@@ -131,6 +133,8 @@
   --badge-gold: #fde047;
   --badge-mint: #6ee7b7;
   --badge-pink: #f472b6;
+
+  --banner-tip-text: #e0e7ff;
 
   --hero-card-bg: linear-gradient(135deg, #3730a3 0%, #581c87 50%, #6b21a8 100%);
   --hero-record-bg: linear-gradient(135deg, #6d28d9 0%, #9d174d 100%);
@@ -710,7 +714,7 @@ html, body {
   gap: 0.65rem;
   margin-top: 1.25rem;
   font-size: 0.85rem;
-  color: var(--primary-dark);
+  color: var(--banner-tip-text);
 }
 
 /* Modal styles */

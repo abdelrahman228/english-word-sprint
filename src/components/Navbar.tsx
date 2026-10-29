@@ -68,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {vocabCount > 0 && (
               <span style={{
                 background: 'var(--primary)',
-                color: 'white',
+                color: 'var(--hero-card-text)',
                 fontSize: '0.7rem',
                 padding: '0.1rem 0.4rem',
                 borderRadius: '999px',
