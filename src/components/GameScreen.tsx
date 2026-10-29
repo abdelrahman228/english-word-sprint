@@ -424,7 +424,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Rounds Completed */}
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-indigo-bg)', color: 'var(--chip-indigo-text)' }}>
             <TrendingUp size={20} />
           </div>
           <div className="stat-chip-content">
@@ -446,7 +446,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
 
         {/* Personal Best */}
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#fef3c7', color: '#d97706' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-amber-bg)', color: 'var(--chip-amber-text)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
