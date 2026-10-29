@@ -80,8 +80,8 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Header Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, #6366f1 0%, #7c3aed 100%)',
-        color: 'white',
+        background: 'var(--hero-card-bg)',
+        color: 'var(--hero-card-text)',
         padding: '2rem 1.5rem',
         border: 'none',
         display: 'flex',
@@ -95,7 +95,7 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            background: 'rgba(255, 255, 255, 0.2)',
+            background: 'var(--hero-badge-bg)',
             padding: '0.3rem 0.8rem',
             borderRadius: '999px',
             fontSize: '0.78rem',
@@ -123,8 +123,8 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
               setPracticeIndex(0);
             }}
             style={{
-              background: 'white',
-              color: 'var(--primary)',
+              background: 'var(--hero-btn-bg)',
+              color: 'var(--hero-btn-text)',
               fontWeight: 800
             }}
           >
@@ -137,9 +137,9 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
             className="btn"
             onClick={exportVocabularyCSV}
             style={{
-              background: 'rgba(255, 255, 255, 0.2)',
-              color: 'white',
-              border: '1px solid rgba(255, 255, 255, 0.4)'
+              background: 'var(--hero-glass-bg)',
+              color: 'var(--hero-card-text)',
+              border: '1px solid var(--hero-glass-border)'
             }}
             title="Download your full vocabulary library as CSV"
           >
@@ -414,8 +414,8 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
                   fontWeight: 700,
                   padding: '0.15rem 0.5rem',
                   borderRadius: '999px',
-                  background: item.status === 'mastered' ? '#dcfce7' : item.status === 'learning' ? '#fef3c7' : '#e0e7ff',
-                  color: item.status === 'mastered' ? '#15803d' : item.status === 'learning' ? '#b45309' : '#4338ca'
+                  background: item.status === 'mastered' ? 'var(--chip-green-bg)' : item.status === 'learning' ? 'var(--chip-amber-bg)' : 'var(--chip-indigo-bg)',
+                  color: item.status === 'mastered' ? 'var(--chip-green-text)' : item.status === 'learning' ? 'var(--chip-amber-text)' : 'var(--chip-indigo-text)'
                 }}>
                   {item.status === 'mastered' ? '⭐ Mastered' : item.status === 'learning' ? '⏳ Learning' : '🌱 New'}
                 </span>
@@ -468,7 +468,7 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
                       type="button"
                       className="hint-btn"
                       onClick={() => handleStatusChange(item, 'mastered')}
-                      style={{ color: '#059669', borderColor: '#a7f3d0' }}
+                      style={{ color: 'var(--success)', borderColor: 'var(--success-border)' }}
                     >
                       <CheckCircle size={13} />
                       <span>Master</span>
