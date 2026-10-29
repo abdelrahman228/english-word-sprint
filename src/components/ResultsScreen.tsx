@@ -313,9 +313,13 @@ export const ResultsScreen: React.FC<ResultsScreenProps> = ({
                   Category: <strong>{w.category.replace('_', ' / ')}</strong>
                 </div>
 
-                {w.example && (
+                {w.example ? (
                   <div style={{ fontSize: '0.8rem', color: 'var(--text-main)', fontStyle: 'italic', marginTop: '0.2rem' }}>
                     "{w.example}"
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic', marginTop: '0.2rem' }}>
+                    No example available
                   </div>
                 )}
               </div>

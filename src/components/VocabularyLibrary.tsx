@@ -220,9 +220,13 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
                     {currentFlashcard.definition}
                   </div>
                 )}
-                {currentFlashcard.exampleSentence && (
+                {currentFlashcard.exampleSentence ? (
                   <div style={{ fontSize: '0.9rem', color: 'var(--primary-dark)', fontStyle: 'italic', maxWidth: '500px' }}>
                     "{currentFlashcard.exampleSentence}"
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)', fontStyle: 'italic', maxWidth: '500px' }}>
+                    No example available
                   </div>
                 )}
               </>
@@ -433,7 +437,7 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
               )}
 
               {/* Example Sentence */}
-              {item.exampleSentence && (
+              {item.exampleSentence ? (
                 <div style={{
                   fontSize: '0.8rem',
                   color: 'var(--text-muted)',
@@ -444,6 +448,15 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
                   borderLeft: '2px solid var(--primary)'
                 }}>
                   "{item.exampleSentence}"
+                </div>
+              ) : (
+                <div style={{
+                  fontSize: '0.8rem',
+                  color: 'var(--text-muted)',
+                  fontStyle: 'italic',
+                  padding: '0.4rem 0.65rem'
+                }}>
+                  No example available
                 </div>
               )}
 

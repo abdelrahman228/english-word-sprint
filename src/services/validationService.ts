@@ -26,6 +26,10 @@ interface DictCacheEntry {
 // Cache for online dictionary queries
 const API_CACHE = new Map<string, DictCacheEntry>();
 
+export function clearApiCache(): void {
+  API_CACHE.clear();
+}
+
 // Category readable names
 const CATEGORY_NAMES: Record<Category, string> = {
   noun: 'noun',
@@ -87,6 +91,56 @@ export function getVerbCandidates(word: string): string[] {
   return candidates;
 }
 
+export function selectBestDefinition(
+  definitions: Array<{ definition?: string; example?: string }>
+): MeaningDetail {
+  if (!definitions || definitions.length === 0) {
+    return { definition: '', example: '' };
+  }
+
+  // Skip definitions that start with a parenthesized label e.g. (nearly always singular), (slang), (obsolete), etc.
+  const parenthesizedLabelRegex = /^\s*\([^)]{1,60}\)/;
+  const filtered = definitions.filter(d => {
+    const text = (d.definition || '').trim();
+    return text.length > 0 && !parenthesizedLabelRegex.test(text);
+  });
+
+  let chosen: { definition?: string; example?: string } | undefined;
+
+  if (filtered.length > 0) {
+    // Prefer the shortest remaining definition under about 120 characters
+    const shortCandidates = filtered.filter(d => (d.definition || '').trim().length <= 120);
+    if (shortCandidates.length > 0) {
+      chosen = shortCandidates.reduce((shortest, cur) =>
+        (cur.definition || '').trim().length < (shortest.definition || '').trim().length ? cur : shortest
+      );
+    } else {
+      // If none under 120 chars, pick shortest from filtered
+      chosen = filtered.reduce((shortest, cur) =>
+        (cur.definition || '').trim().length < (shortest.definition || '').trim().length ? cur : shortest
+      );
+    }
+  } else {
+    // If every definition is filtered out, fall back to the first definition and keep previous behavior
+    const defWithEx = definitions.find(d => d.example && d.example.trim().length > 0);
+    chosen = defWithEx || definitions[0];
+  }
+
+  const definition = (chosen?.definition || '').trim();
+  const rawExample = (chosen?.example || '').trim();
+
+  // Use the dictionary example only if it belongs to the chosen definition and is natural
+  const isNatural =
+    rawExample.length > 0 &&
+    !rawExample.includes('${') &&
+    rawExample !== definition;
+
+  return {
+    definition,
+    example: isNatural ? rawExample : ''
+  };
+}
+
 // Fetch dictionary data via Free Dictionary API with timeout
 async function fetchDictionaryData(word: string): Promise<DictCacheEntry | null> {
   const cached = API_CACHE.get(word);
@@ -118,7 +172,7 @@ async function fetchDictionaryData(word: string): Promise<DictCacheEntry | null>
     }
 
     const posSet = new Set<string>();
-    const meaningsByPos: Record<string, MeaningDetail> = {};
+    const defsByPos: Record<string, Array<{ definition?: string; example?: string }>> = {};
 
     for (const entry of data) {
       if (Array.isArray(entry.meanings)) {
@@ -126,17 +180,20 @@ async function fetchDictionaryData(word: string): Promise<DictCacheEntry | null>
           const posKey = m.partOfSpeech ? m.partOfSpeech.toLowerCase() : '';
           if (posKey) {
             posSet.add(posKey);
-            if (!meaningsByPos[posKey] && Array.isArray(m.definitions) && m.definitions.length > 0) {
-              const defWithEx = m.definitions.find((d: { example?: string }) => d.example);
-              const chosen = defWithEx || m.definitions[0];
-              meaningsByPos[posKey] = {
-                definition: chosen?.definition || '',
-                example: chosen?.example || ''
-              };
+            if (!defsByPos[posKey]) {
+              defsByPos[posKey] = [];
+            }
+            if (Array.isArray(m.definitions)) {
+              defsByPos[posKey].push(...m.definitions);
             }
           }
         }
       }
+    }
+
+    const meaningsByPos: Record<string, MeaningDetail> = {};
+    for (const [posKey, defs] of Object.entries(defsByPos)) {
+      meaningsByPos[posKey] = selectBestDefinition(defs);
     }
 
     const result: DictCacheEntry = {
@@ -170,6 +227,55 @@ export async function validateAnswer(
       pointsEarned: 0,
       word: '',
       normalizedWord: '',
+      category
+    };
+  }
+
+  // Pre-validation checks before letter and dictionary checks
+  // Non-English characters (e.g. Arabic, Cyrillic, etc.)
+  if (/[^a-z\s'-]/i.test(normalized)) {
+    return {
+      status: 'invalid',
+      message: 'Please type in English.',
+      pointsEarned: 0,
+      word: rawInput.trim(),
+      normalizedWord: normalized,
+      category
+    };
+  }
+
+  // Multi-word with spaces (except country_city e.g. "New York")
+  if (category !== 'country_city' && normalized.includes(' ')) {
+    return {
+      status: 'invalid',
+      message: 'Please type one English word.',
+      pointsEarned: 0,
+      word: rawInput.trim(),
+      normalizedWord: normalized,
+      category
+    };
+  }
+
+  // Single letter (length <= 1)
+  if (normalized.length <= 1) {
+    return {
+      status: 'invalid',
+      message: 'Please type one English word.',
+      pointsEarned: 0,
+      word: rawInput.trim(),
+      normalizedWord: normalized,
+      category
+    };
+  }
+
+  // Repeated single character (e.g. "jjjj")
+  if (/^(.)\1+$/i.test(normalized)) {
+    return {
+      status: 'invalid',
+      message: 'Please type one English word.',
+      pointsEarned: 0,
+      word: rawInput.trim(),
+      normalizedWord: normalized,
       category
     };
   }
