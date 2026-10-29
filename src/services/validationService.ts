@@ -91,6 +91,28 @@ export function getVerbCandidates(word: string): string[] {
   return candidates;
 }
 
+const FORM_OF_PREFIXES = [
+  'plural of',
+  'alternative form of',
+  'alternative spelling of',
+  'synonym of',
+  'obsolete form of',
+  'past tense of',
+  'present participle of',
+  'third-person singular of',
+  'misspelling of',
+  'initialism of',
+  'abbreviation of',
+  'comparative form of',
+  'superlative form of',
+  'see '
+];
+
+function isFormOfOrReference(text: string): boolean {
+  const lower = text.trim().toLowerCase();
+  return FORM_OF_PREFIXES.some(prefix => lower.startsWith(prefix));
+}
+
 export function selectBestDefinition(
   definitions: Array<{ definition?: string; example?: string }>
 ): MeaningDetail {
@@ -100,28 +122,28 @@ export function selectBestDefinition(
 
   // Skip definitions that start with a parenthesized label e.g. (nearly always singular), (slang), (obsolete), etc.
   const parenthesizedLabelRegex = /^\s*\([^)]{1,60}\)/;
-  const filtered = definitions.filter(d => {
+
+  // 1. Skip parenthesized labels and form-of / reference definitions
+  const cleanCandidates = definitions.filter(d => {
     const text = (d.definition || '').trim();
-    return text.length > 0 && !parenthesizedLabelRegex.test(text);
+    if (text.length === 0) return false;
+    if (parenthesizedLabelRegex.test(text)) return false;
+    if (isFormOfOrReference(text)) return false;
+    return true;
   });
 
   let chosen: { definition?: string; example?: string } | undefined;
 
-  if (filtered.length > 0) {
-    // Prefer the shortest remaining definition under about 120 characters
-    const shortCandidates = filtered.filter(d => (d.definition || '').trim().length <= 120);
-    if (shortCandidates.length > 0) {
-      chosen = shortCandidates.reduce((shortest, cur) =>
-        (cur.definition || '').trim().length < (shortest.definition || '').trim().length ? cur : shortest
-      );
-    } else {
-      // If none under 120 chars, pick shortest from filtered
-      chosen = filtered.reduce((shortest, cur) =>
-        (cur.definition || '').trim().length < (shortest.definition || '').trim().length ? cur : shortest
-      );
-    }
+  if (cleanCandidates.length > 0) {
+    // 2. Prefer definitions in original order: first remaining definition between 15 and 120 characters
+    const inRange = cleanCandidates.find(d => {
+      const len = (d.definition || '').trim().length;
+      return len >= 15 && len <= 120;
+    });
+    // Only if none is in that range, take the first remaining one
+    chosen = inRange || cleanCandidates[0];
   } else {
-    // If every definition is filtered out, fall back to the first definition and keep previous behavior
+    // All-skipped fallback: use them only as a last-resort fallback
     const defWithEx = definitions.find(d => d.example && d.example.trim().length > 0);
     chosen = defWithEx || definitions[0];
   }
@@ -129,7 +151,7 @@ export function selectBestDefinition(
   const definition = (chosen?.definition || '').trim();
   const rawExample = (chosen?.example || '').trim();
 
-  // Use the dictionary example only if it belongs to the chosen definition and is natural
+  // 3. Use the dictionary example only if it belongs to the chosen definition and is natural
   const isNatural =
     rawExample.length > 0 &&
     !rawExample.includes('${') &&

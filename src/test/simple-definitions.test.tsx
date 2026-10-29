@@ -15,15 +15,15 @@ import { ResultsScreen } from '../components/ResultsScreen';
 import { VocabularyLibrary } from '../components/VocabularyLibrary';
 import type { GameHistoryItem, VocabWord } from '../types';
 
-describe('Issue 1: Simple Definitions & Register Label Filtering', () => {
+describe('Definition Ranking & Form-of / Register Filtering', () => {
   beforeEach(() => {
     clearApiCache();
     window.localStorage.clear();
     vi.restoreAllMocks();
   });
 
-  // (a) "game" with a rare first definition and a simple later definition selects the simple one
-  it('selects simple definition for "game" instead of rare securities/domain definition', async () => {
+  // (a) game -> "An activity done for enjoyment, often with rules."
+  it('(a) selects "An activity done for enjoyment, often with rules." for "game" over shorter "Wild animals hunted for food or sport."', async () => {
     const originalFetch = global.fetch;
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
@@ -41,8 +41,12 @@ describe('Issue 1: Simple Definitions & Register Label Filtering', () => {
                 },
                 {
                   definition:
-                    'An activity that one engages in for amusement or fun.',
+                    'An activity done for enjoyment, often with rules.',
                   example: 'Children love playing this game.'
+                },
+                {
+                  definition:
+                    'Wild animals hunted for food or sport.'
                 }
               ]
             }
@@ -56,14 +60,76 @@ describe('Issue 1: Simple Definitions & Register Label Filtering', () => {
 
     expect(result.status).toBe('valid');
     expect(result.definition).toBe(
-      'An activity that one engages in for amusement or fun.'
+      'An activity done for enjoyment, often with rules.'
     );
     expect(result.exampleSentence).toBe('Children love playing this game.');
+    expect(result.definition).not.toBe('Wild animals hunted for food or sport.');
     expect(result.exampleSentence).not.toContain('securities game');
   });
 
-  // (b) labels like (slang)/(obsolete) are skipped
-  it('skips definitions with labels like (slang), (obsolete), (archaic)', () => {
+  // (b) "Plural of gam." and "Synonym of work." are skipped when a real definition exists
+  it('(b) skips form-of / reference definitions like "Plural of gam." and "Synonym of work." when real definition exists', () => {
+    const definitions = [
+      {
+        definition: 'Plural of gam.'
+      },
+      {
+        definition: 'An activity done for enjoyment, often with rules.',
+        example: 'They played a board game.'
+      },
+      {
+        definition: 'Synonym of work.'
+      }
+    ];
+
+    const result = selectBestDefinition(definitions);
+    expect(result.definition).toBe(
+      'An activity done for enjoyment, often with rules.'
+    );
+    expect(result.example).toBe('They played a board game.');
+  });
+
+  // (c) all-skipped fallback
+  it('(c) falls back to the first definition when all definitions are skipped (all-skipped fallback)', () => {
+    const definitions = [
+      {
+        definition: 'Plural of gam.',
+        example: 'Look at the gams.'
+      },
+      {
+        definition: 'Synonym of work.'
+      },
+      {
+        definition: '(obsolete) Joy, excitement, or revelry.'
+      }
+    ];
+
+    const result = selectBestDefinition(definitions);
+    expect(result.definition).toBe('Plural of gam.');
+    expect(result.example).toBe('Look at the gams.');
+  });
+
+  // (d) definition order respected (first valid in range wins, not shortest)
+  it('(d) respects original dictionary order: first valid in range [15, 120] wins, not shortest', () => {
+    const definitions = [
+      {
+        definition: 'A contest played according to rules with a winner.', // 50 chars (in range [15, 120])
+        example: 'The chess game ended in a draw.'
+      },
+      {
+        definition: 'A game of chance.' // 17 chars (shorter, also in range [15, 120])
+      }
+    ];
+
+    const result = selectBestDefinition(definitions);
+    // Def 1 (50 chars) wins because it comes first in dictionary order, even though Def 2 (17 chars) is shorter
+    expect(result.definition).toBe(
+      'A contest played according to rules with a winner.'
+    );
+    expect(result.example).toBe('The chess game ended in a draw.');
+  });
+
+  it('skips parenthesized labels such as (slang), (obsolete), (archaic)', () => {
     const definitions = [
       {
         definition: '(slang) Skill or ability in romantic situations.',
@@ -85,26 +151,38 @@ describe('Issue 1: Simple Definitions & Register Label Filtering', () => {
     expect(result.example).toBe('The chess game ended in a draw.');
   });
 
-  // (c) fallback when all are filtered
-  it('falls back to the first definition when all definitions start with parenthesized labels', () => {
+  it('skips definitions under 15 characters if a definition between 15 and 120 characters is available', () => {
     const definitions = [
       {
-        definition: '(slang) An exceptionally cool or admirable thing.',
-        example: 'That car is game.'
+        definition: 'A short def.' // 12 characters (< 15)
       },
       {
-        definition: '(rare) An archaic dialect expression for wild fowl.'
+        definition: 'A comprehensive explanation of the term.', // 40 characters (in range [15, 120])
+        example: 'Here is an example.'
+      }
+    ];
+
+    const result = selectBestDefinition(definitions);
+    expect(result.definition).toBe('A comprehensive explanation of the term.');
+    expect(result.example).toBe('Here is an example.');
+  });
+
+  it('takes the first remaining definition if none is in range [15, 120]', () => {
+    const definitions = [
+      {
+        definition: 'A very long definition that provides extensive historical context and detailed linguistic etymology spanning multiple clauses well over one hundred and twenty characters in total length.'
+      },
+      {
+        definition: 'Another very long definition that also provides extensive historical context and detailed linguistic etymology spanning multiple clauses well over one hundred and twenty characters in total length.'
       }
     ];
 
     const result = selectBestDefinition(definitions);
     expect(result.definition).toBe(
-      '(slang) An exceptionally cool or admirable thing.'
+      'A very long definition that provides extensive historical context and detailed linguistic etymology spanning multiple clauses well over one hundred and twenty characters in total length.'
     );
-    expect(result.example).toBe('That car is game.');
   });
 
-  // (d) the part-of-speech match is still respected (verb gets the verb definition)
   it('respects requested part-of-speech: verb gets verb definition for "game"', async () => {
     const originalFetch = global.fetch;
     global.fetch = vi.fn().mockResolvedValue({
@@ -141,25 +219,6 @@ describe('Issue 1: Simple Definitions & Register Label Filtering', () => {
     expect(result.status).toBe('valid');
     expect(result.definition).toBe('To play video games or games of chance.');
     expect(result.exampleSentence).toBe('They game together every weekend.');
-  });
-
-  it('prefers the shortest clean definition under 120 characters', () => {
-    const definitions = [
-      {
-        definition:
-          'A very long definition that provides extensive historical context and detailed linguistic etymology spanning multiple clauses well over one hundred and twenty characters in total length.'
-      },
-      {
-        definition: 'A brief definition.'
-      },
-      {
-        definition: 'A medium-length definition describing an object.'
-      }
-    ];
-
-    const result = selectBestDefinition(definitions);
-    expect(result.definition).toBe('A brief definition.');
-    expect(result.example).toBe('');
   });
 });
 
