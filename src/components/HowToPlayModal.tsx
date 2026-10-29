@@ -14,7 +14,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ onClose }) => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Sparkles size={22} color="var(--primary)" />
             <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.4rem', fontWeight: 900 }}>
-              How to Play English Word Sprint
+              How to Play Milli
             </h2>
           </div>
           <button

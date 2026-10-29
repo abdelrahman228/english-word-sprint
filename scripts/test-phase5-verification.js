@@ -113,7 +113,7 @@ async function runPhase5Verification() {
         await page.waitForTimeout(150);
 
         // A. Home Screen
-        await page.click('button[aria-label="English Word Sprint home"]');
+        await page.click('button[aria-label="Milli home"]');
         await page.waitForSelector('h1');
         const homeOverflow = await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth);
         record(`P5-LAYOUT-HOME-${vp.width}-${th}`, `Home Screen fits ${vp.name} [${th}] with no overflow`, homeOverflow);
@@ -174,7 +174,7 @@ async function runPhase5Verification() {
     await page.setViewportSize({ width: 375, height: 667 }); // Test on mobile
 
     // Navigate to Home
-    await page.click('button[aria-label="English Word Sprint home"]');
+    await page.click('button[aria-label="Milli home"]');
     await page.waitForSelector('#start-game-btn');
 
     // Select 30s game

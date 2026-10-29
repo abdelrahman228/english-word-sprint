@@ -185,7 +185,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
             }}
           >
             <Play size={16} fill="currentColor" />
-            <span>Play Word Sprint</span>
+            <span>Play Milli</span>
           </button>
 
           {history.length > 0 && (

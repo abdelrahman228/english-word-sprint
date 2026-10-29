@@ -1,8 +1,8 @@
-// Automated verification script for English Word Sprint acceptance criteria
+// Automated verification script for Milli acceptance criteria
 import { validateAnswer } from '../src/services/validationService.ts';
 
 async function runTests() {
-  console.log('--- RUNNING ENGLISH WORD SPRINT VERIFICATION TESTS ---');
+  console.log('--- RUNNING MILLI VERIFICATION TESTS ---');
   let passed = 0;
   let failed = 0;
 

@@ -336,12 +336,12 @@ export const VocabularyLibrary: React.FC<VocabularyLibraryProps> = ({
           </h2>
           <p style={{ color: 'var(--text-muted)', maxWidth: '420px', margin: '0 auto 1.5rem auto' }}>
             {wordsList.length === 0
-              ? 'Play your first Word Sprint game! Any correct answers you enter will be automatically saved here.'
+              ? 'Play your first Milli game! Any correct answers you enter will be automatically saved here.'
               : 'Try clearing your search query or changing the filter options above.'}
           </p>
           {wordsList.length === 0 && (
             <button type="button" className="btn btn-primary" onClick={onStartSprint}>
-              Start a Word Sprint
+              Play Milli
             </button>
           )}
         </div>

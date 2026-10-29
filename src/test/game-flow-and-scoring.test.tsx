@@ -290,7 +290,7 @@ describe('Game Flow, Validation, Scoring & UI (Sections A, B, C, D, F)', () => {
       />
     );
 
-    expect(screen.getByText(/English Word Sprint/i)).toBeInTheDocument();
+    expect(screen.getByText(/Milli/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Start Game/i })).toBeInTheDocument();
     expect(screen.getByText('80 pts')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();

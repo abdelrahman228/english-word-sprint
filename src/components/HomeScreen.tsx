@@ -67,7 +67,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           border: '1px solid var(--hero-glass-border)'
         }}>
           <Sparkles size={16} />
-          <span>Interactive English Vocabulary Sprint • اضرب في الملي</span>
+          <span>Interactive English Vocabulary Game • اضرب في الملي</span>
         </div>
 
         <h1 style={{
@@ -78,8 +78,18 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           marginBottom: '0.75rem',
           lineHeight: 1.15
         }}>
-          English Word Sprint
+          Milli
         </h1>
+
+        <div style={{
+          fontFamily: 'var(--font-arabic)',
+          fontSize: '1.35rem',
+          fontWeight: 700,
+          marginBottom: '0.85rem',
+          opacity: 0.95
+        }}>
+          اضرب في الملي
+        </div>
 
         <p style={{
           maxWidth: '620px',

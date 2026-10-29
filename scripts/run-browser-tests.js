@@ -26,7 +26,7 @@ async function runBrowserTests() {
     await page.goto('http://localhost:4173/');
     await page.waitForSelector('h1');
     const title = await page.textContent('h1');
-    record('BROWSER-01', 'Welcome screen title rendered', title.includes('English Word Sprint'), `Found "${title.trim()}"`);
+    record('BROWSER-01', 'Welcome screen title rendered', title.includes('Milli'), `Found "${title.trim()}"`);
 
     // BROWSER-02: Difficulty and Duration selectors
     const beginnerBtn = await page.$('button:has-text("Beginner")');

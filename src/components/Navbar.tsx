@@ -27,13 +27,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="brand"
           onClick={() => onSelectTab('game')}
           title="Return to Game"
-          aria-label="English Word Sprint home"
+          aria-label="Milli home"
         >
           <div className="brand-icon">
             <Zap size={22} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left' }}>
-            <span style={{ lineHeight: 1.1 }}>Word Sprint</span>
+            <span style={{ lineHeight: 1.1 }}>Milli</span>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
               اضرب في الملي
             </span>
