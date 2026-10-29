@@ -1,6 +1,7 @@
 import React from 'react';
 import { Zap, BookOpen, BarChart3, HelpCircle, Settings, Flame } from 'lucide-react';
 import type { UserStreak } from '../types';
+import { ThemeToggle } from './ThemeToggle';
 
 interface NavbarProps {
   currentTab: 'game' | 'vocabulary' | 'statistics';
@@ -86,6 +87,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             <BarChart3 size={18} />
             <span className="nav-label">Stats</span>
           </button>
+
+          <ThemeToggle />
 
           <button
             className="nav-btn"

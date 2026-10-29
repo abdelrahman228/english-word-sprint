@@ -5,8 +5,12 @@ const STORAGE_KEYS = {
   GAME_HISTORY: 'word_sprint_history',
   VOCABULARY: 'word_sprint_vocabulary',
   STREAK: 'word_sprint_streak',
-  SETTINGS: 'word_sprint_settings'
+  SETTINGS: 'word_sprint_settings',
+  THEME: 'word_sprint_theme'
 };
+
+export { getStoredTheme, saveStoredTheme } from '../hooks/useTheme';
+export type { Theme } from '../hooks/useTheme';
 
 export const DEFAULT_SETTINGS: GameSettings = {
   duration: 60,

@@ -19,8 +19,11 @@ import { VocabularyLibrary } from './components/VocabularyLibrary';
 import { StatisticsDashboard } from './components/StatisticsDashboard';
 import { SettingsModal } from './components/SettingsModal';
 import { HowToPlayModal } from './components/HowToPlayModal';
+import { useTheme } from './hooks/useTheme';
 
 export const App: React.FC = () => {
+  useTheme();
+
   // Navigation Tabs
   const [currentTab, setCurrentTab] = useState<'game' | 'vocabulary' | 'statistics'>('game');
 
