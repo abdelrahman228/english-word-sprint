@@ -4,7 +4,6 @@ import {
   SkipForward,
   RotateCcw,
   StopCircle,
-  Timer as TimerIcon,
   Award,
   Zap,
   CheckCircle2,
@@ -24,6 +23,7 @@ import type {
 } from '../types';
 import { CATEGORIES_CONFIG } from '../data/vocabularyDataset';
 import { CategoryInput } from './CategoryInput';
+import { Timer } from './Timer';
 import { getCategoryPartialHint, validateAnswer } from '../services/validationService';
 import type { PartialHint } from '../services/validationService';
 import { soundService } from '../services/soundService';
@@ -383,13 +383,6 @@ export const GameScreen: React.FC<GameScreenProps> = ({
     }
   };
 
-  // Format time MM:SS
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-  };
-
   const avgPointsPerRound = completedRounds > 0
     ? (totalScore / completedRounds).toFixed(1)
     : '0.0';
@@ -401,13 +394,7 @@ export const GameScreen: React.FC<GameScreenProps> = ({
       {/* Top Stats Bar */}
       <div className="stats-header-bar">
         {/* Timer */}
-        <div className={`timer-chip ${timeLeft <= 10 ? 'urgent' : ''}`} id="timer-display">
-          <TimerIcon size={24} color={timeLeft <= 10 ? 'var(--error)' : 'var(--primary)'} />
-          <div>
-            <div className="stat-chip-label">Time Remaining</div>
-            <div className="timer-val">{formatTime(timeLeft)}</div>
-          </div>
-        </div>
+        <Timer timeLeft={timeLeft} totalDuration={settings.duration} />
 
         {/* Total Score */}
         <div className="stat-chip" id="score-display">
