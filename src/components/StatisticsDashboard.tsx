@@ -140,8 +140,8 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       {/* Overview Banner */}
       <div className="card" style={{
-        background: 'linear-gradient(135deg, #4338ca 0%, #6d28d9 100%)',
-        color: 'white',
+        background: 'var(--hero-card-bg)',
+        color: 'var(--hero-card-text)',
         border: 'none',
         padding: '2rem 1.5rem',
         display: 'flex',
@@ -155,7 +155,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            background: 'rgba(255, 255, 255, 0.2)',
+            background: 'var(--hero-badge-bg)',
             padding: '0.3rem 0.8rem',
             borderRadius: '999px',
             fontSize: '0.78rem',
@@ -179,8 +179,8 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
             className="btn"
             onClick={onStartSprint}
             style={{
-              background: 'white',
-              color: 'var(--primary)',
+              background: 'var(--hero-btn-bg)',
+              color: 'var(--hero-btn-text)',
               fontWeight: 800
             }}
           >
@@ -194,9 +194,9 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
               className="btn"
               onClick={handleClear}
               style={{
-                background: 'rgba(239, 68, 68, 0.2)',
-                color: '#fca5a5',
-                border: '1px solid rgba(239, 68, 68, 0.4)',
+                background: 'var(--error-bg)',
+                color: 'var(--error)',
+                border: '1px solid var(--error-border)',
                 fontSize: '0.85rem'
               }}
             >
@@ -214,7 +214,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         gap: '0.85rem'
       }}>
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#fef3c7', color: '#b45309' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-amber-bg)', color: 'var(--chip-amber-text)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
@@ -224,7 +224,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#ede9fe', color: 'var(--primary)' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-purple-bg)', color: 'var(--chip-purple-text)' }}>
             <Zap size={20} />
           </div>
           <div className="stat-chip-content">
@@ -234,7 +234,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#e0e7ff', color: '#4338ca' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-indigo-bg)', color: 'var(--chip-indigo-text)' }}>
             <TrendingUp size={20} />
           </div>
           <div className="stat-chip-content">
@@ -244,7 +244,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#ecfdf5', color: '#059669' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-green-bg)', color: 'var(--chip-green-text)' }}>
             <BookOpen size={20} />
           </div>
           <div className="stat-chip-content">
@@ -254,7 +254,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#dbeafe', color: '#2563eb' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-blue-bg)', color: 'var(--chip-blue-text)' }}>
             <Award size={20} />
           </div>
           <div className="stat-chip-content">
@@ -264,7 +264,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
         </div>
 
         <div className="stat-chip">
-          <div className="stat-chip-icon" style={{ background: '#fee2e2', color: '#b91c1c' }}>
+          <div className="stat-chip-icon" style={{ background: 'var(--chip-red-bg)', color: 'var(--chip-red-text)' }}>
             <Flame size={20} />
           </div>
           <div className="stat-chip-content">
@@ -393,7 +393,7 @@ export const StatisticsDashboard: React.FC<StatisticsDashboardProps> = ({
                         cx={cx}
                         cy={cy}
                         r="3"
-                        fill="white"
+                        fill="var(--bg-surface)"
                         stroke="var(--primary)"
                         strokeWidth="2"
                       >
